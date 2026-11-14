@@ -14,7 +14,7 @@ function buyOrder(quantity, price = 1050) {
 }
 
 test("cria um nível de preço vazio", () => {
-  const level = new PriceLevel(1050);
+  const level = new PriceLevel(SIDES.BUY, 1050);
 
   assert.equal(level.price, 1050);
   assert.equal(level.isEmpty, true);
@@ -25,7 +25,7 @@ test("cria um nível de preço vazio", () => {
 });
 
 test("mantém as ordens do mesmo preço na ordem de chegada", () => {
-  const level = new PriceLevel(1050);
+  const level = new PriceLevel(SIDES.BUY, 1050);
   const first = buyOrder(100);
   const second = buyOrder(50);
   const third = buyOrder(25);
@@ -40,7 +40,7 @@ test("mantém as ordens do mesmo preço na ordem de chegada", () => {
 });
 
 test("soma a quantidade restante de todas as ordens do nível", () => {
-  const level = new PriceLevel(1050);
+  const level = new PriceLevel(SIDES.BUY, 1050);
   const first = buyOrder(100);
 
   level.add(first);
@@ -54,7 +54,7 @@ test("soma a quantidade restante de todas as ordens do nível", () => {
 });
 
 test("remove uma ordem pelo nó devolvido ao adicionar", () => {
-  const level = new PriceLevel(1050);
+  const level = new PriceLevel(SIDES.BUY, 1050);
   const first = buyOrder(100);
   const second = buyOrder(50);
   const firstNode = level.add(first);
@@ -66,11 +66,48 @@ test("remove uma ordem pelo nó devolvido ao adicionar", () => {
 });
 
 test("fica vazio quando a última ordem é removida", () => {
-  const level = new PriceLevel(1050);
+  const level = new PriceLevel(SIDES.BUY, 1050);
   const node = level.add(buyOrder(100));
 
   level.remove(node);
 
   assert.equal(level.isEmpty, true);
   assert.equal(level.totalQuantity, 0);
+});
+
+test("rejeita nível com lado ou preço inválido", () => {
+  assert.throws(() => new PriceLevel("compra", 1050), TypeError);
+  assert.throws(() => new PriceLevel(SIDES.SELL, 10.5), TypeError);
+  assert.throws(() => new PriceLevel(SIDES.SELL, 0), RangeError);
+});
+
+test("rejeita ordem com preço diferente do nível", () => {
+  const level = new PriceLevel(SIDES.BUY, 1050);
+
+  assert.throws(() => level.add(buyOrder(100, 1051)), /does not match level price/);
+  assert.equal(level.isEmpty, true);
+});
+
+test("rejeita ordem do lado oposto", () => {
+  const level = new PriceLevel(SIDES.SELL, 1050);
+
+  assert.throws(() => level.add(buyOrder(100)), /does not match level side/);
+  assert.equal(level.isEmpty, true);
+});
+
+test("rejeita objeto que não é uma ordem", () => {
+  const level = new PriceLevel(SIDES.BUY, 1050);
+  const fake = { id: 1, side: SIDES.BUY, price: 1050, remaining: 10 };
+
+  assert.throws(() => level.add(fake), TypeError);
+  assert.throws(() => level.add(null), TypeError);
+});
+
+test("rejeita ordem já totalmente executada", () => {
+  const level = new PriceLevel(SIDES.BUY, 1050);
+  const order = buyOrder(100);
+  order.remaining = 0;
+
+  assert.throws(() => level.add(order), /Filled orders/);
+  assert.equal(level.isEmpty, true);
 });

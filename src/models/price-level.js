@@ -1,3 +1,4 @@
+import { assertPositiveInteger, assertSide, Order } from "./order.js";
 import { OrderQueue } from "../structures/order-queue.js";
 
 /**
@@ -9,7 +10,11 @@ import { OrderQueue } from "../structures/order-queue.js";
 export class PriceLevel {
   #queue = new OrderQueue();
 
-  constructor(price) {
+  constructor(side, price) {
+    assertSide(side);
+    assertPositiveInteger(price, "Price");
+
+    this.side = side;
     this.price = price;
   }
 
@@ -32,6 +37,22 @@ export class PriceLevel {
   }
 
   add(order) {
+    if (!(order instanceof Order)) {
+      throw new TypeError("Price level only accepts Order instances.");
+    }
+
+    if (order.side !== this.side) {
+      throw new Error(`Order side "${order.side}" does not match level side "${this.side}".`);
+    }
+
+    if (order.price !== this.price) {
+      throw new Error(`Order price ${order.price} does not match level price ${this.price}.`);
+    }
+
+    if (order.isFilled) {
+      throw new Error("Filled orders cannot be added to a price level.");
+    }
+
     return this.#queue.enqueue(order);
   }
 

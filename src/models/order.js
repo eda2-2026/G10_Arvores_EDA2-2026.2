@@ -5,7 +5,13 @@ export const SIDES = Object.freeze({
 
 const VALID_SIDES = new Set(Object.values(SIDES));
 
-function assertPositiveInteger(value, field) {
+export function assertSide(side) {
+  if (!VALID_SIDES.has(side)) {
+    throw new TypeError(`Side must be "${SIDES.BUY}" or "${SIDES.SELL}".`);
+  }
+}
+
+export function assertPositiveInteger(value, field) {
   if (!Number.isSafeInteger(value)) {
     throw new TypeError(`${field} must be an integer.`);
   }
@@ -25,10 +31,7 @@ export class Order {
    * @param {number} data.sequence Ordem de chegada no livro (menor = mais antiga).
    */
   constructor({ id, side, price, quantity, sequence }) {
-    if (!VALID_SIDES.has(side)) {
-      throw new TypeError(`Side must be "${SIDES.BUY}" or "${SIDES.SELL}".`);
-    }
-
+    assertSide(side);
     assertPositiveInteger(id, "Id");
     assertPositiveInteger(price, "Price");
     assertPositiveInteger(quantity, "Quantity");
