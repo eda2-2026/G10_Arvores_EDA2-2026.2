@@ -6,6 +6,7 @@ import { PriceLevel } from "../../src/models/price-level.js";
 
 function assertConsistent(book) {
   const ids = new Set();
+
   for (const [side, tree, levels] of [
     ["buy", book.bids, book.listBids()],
     ["sell", book.asks, book.listAsks()],
@@ -24,6 +25,7 @@ function assertConsistent(book) {
       for (const order of view.orders) {
         assert.equal(order.side, side);
         assert.equal(order.price, view.price);
+        assert.ok(order.remaining > 0);
         assert.ok(!ids.has(order.id));
         ids.add(order.id);
         assert.deepEqual(book.getOrder(order.id), order);
@@ -45,14 +47,15 @@ test("cria um livro vazio com duas AVLs independentes", () => {
   assertConsistent(book);
 });
 
-test("cadastra compra e venda de preços cruzados sem negociar", () => {
+test("cadastra compra e venda sem preços compatíveis", () => {
   const book = new OrderBook();
-  const buy = book.addOrder("buy", 10_500, 3);
-  const sell = book.addOrder("sell", 10_000, 2);
-  assert.deepEqual(buy, { id: 1, side: "buy", price: 10_500,
+  const buy = book.addOrder("buy", 10_000, 3);
+  const sell = book.addOrder("sell", 10_500, 2);
+  assert.deepEqual(buy, { id: 1, side: "buy", price: 10_000,
     quantity: 3, remaining: 3, sequence: 1 });
-  assert.deepEqual(sell, { id: 2, side: "sell", price: 10_000,
+  assert.deepEqual(sell, { id: 2, side: "sell", price: 10_500,
     quantity: 2, remaining: 2, sequence: 2 });
+  assert.deepEqual(book.getTrades(), []);
   assertConsistent(book);
 });
 
@@ -188,4 +191,163 @@ test("rejeita dados inválidos sem alterações parciais ou lacunas nos IDs", ()
   assert.equal(next.id, 2);
   assert.equal(next.sequence, 2);
   assertConsistent(book);
+});
+
+test("compra executa venda inteira no preço da ordem existente", () => {
+  const book = new OrderBook();
+  const sell = book.addOrder("sell", 100, 3);
+  const buy = book.addOrder("buy", 110, 3);
+  assert.equal(buy.remaining, 0);
+  assert.equal(book.getOrder(buy.id), null);
+  assert.equal(book.getOrder(sell.id), null);
+  assert.equal(book.cancelOrder(buy.id), false);
+  assert.equal(book.cancelOrder(sell.id), false);
+  assert.equal(book.bestBid(), null);
+  assert.equal(book.bestAsk(), null);
+  assert.deepEqual(book.getTrades(), [{ id: 1, buyOrderId: buy.id,
+    sellOrderId: sell.id, price: 100, quantity: 3 }]);
+  assertConsistent(book);
+});
+
+test("venda executa compra inteira no preço da ordem existente", () => {
+  const book = new OrderBook();
+  const buy = book.addOrder("buy", 110, 2);
+  const sell = book.addOrder("sell", 100, 2);
+  assert.equal(sell.remaining, 0);
+  assert.deepEqual(book.getTrades(), [{ id: 1, buyOrderId: buy.id,
+    sellOrderId: sell.id, price: 110, quantity: 2 }]);
+  assert.equal(book.bids.size, 0);
+  assert.equal(book.asks.size, 0);
+  assertConsistent(book);
+});
+
+test("execução parcial de ordem existente preserva sua posição na fila", () => {
+  const book = new OrderBook();
+  const old = book.addOrder("sell", 100, 7);
+  const later = book.addOrder("sell", 100, 4);
+  const incoming = book.addOrder("buy", 100, 3);
+  assert.equal(incoming.remaining, 0);
+  assert.equal(book.getOrder(old.id).remaining, 4);
+  assert.deepEqual(book.bestAsk().orders.map(({ id }) => id), [old.id, later.id]);
+  assert.equal(book.bestAsk().totalQuantity, 8);
+  assertConsistent(book);
+});
+
+test("execução parcial da ordem recebida insere apenas o saldo", () => {
+  const book = new OrderBook();
+  const sell = book.addOrder("sell", 100, 2);
+  const buy = book.addOrder("buy", 110, 5);
+  assert.equal(buy.remaining, 3);
+  assert.equal(book.getOrder(buy.id).remaining, 3);
+  assert.equal(book.getOrder(sell.id), null);
+  assert.equal(book.bestAsk(), null);
+  assert.equal(book.bestBid().totalQuantity, 3);
+  assert.equal(book.bestBid().orders[0].quantity, 5);
+  assertConsistent(book);
+});
+
+test("compra percorre várias vendas e níveis pela prioridade de preço", () => {
+  const book = new OrderBook();
+  const high = book.addOrder("sell", 102, 2);
+  const low1 = book.addOrder("sell", 100, 1);
+  const low2 = book.addOrder("sell", 100, 2);
+  const mid = book.addOrder("sell", 101, 1);
+  const buy = book.addOrder("buy", 102, 5);
+  assert.equal(buy.remaining, 0);
+  assert.deepEqual(book.getTrades().map(({ sellOrderId, price, quantity }) =>
+    [sellOrderId, price, quantity]), [
+    [low1.id, 100, 1], [low2.id, 100, 2], [mid.id, 101, 1], [high.id, 102, 1],
+  ]);
+  assert.equal(book.bestAsk().price, 102);
+  assert.equal(book.bestAsk().totalQuantity, 1);
+  assert.deepEqual(book.getTrades().map(({ id }) => id), [1, 2, 3, 4]);
+  assertConsistent(book);
+});
+
+test("venda percorre várias compras em ordem decrescente de preço", () => {
+  const book = new OrderBook();
+  const low = book.addOrder("buy", 100, 2);
+  const high = book.addOrder("buy", 103, 1);
+  const mid = book.addOrder("buy", 102, 2);
+  const sell = book.addOrder("sell", 100, 4);
+  assert.equal(sell.remaining, 0);
+  assert.deepEqual(book.getTrades().map(({ buyOrderId, price, quantity }) =>
+    [buyOrderId, price, quantity]), [
+    [high.id, 103, 1], [mid.id, 102, 2], [low.id, 100, 1],
+  ]);
+  assert.equal(book.bestBid().price, 100);
+  assert.equal(book.bestBid().totalQuantity, 1);
+  assertConsistent(book);
+});
+
+test("ordens de mesmo preço são atendidas na ordem de chegada", () => {
+  const book = new OrderBook();
+  const first = book.addOrder("buy", 100, 2);
+  const second = book.addOrder("buy", 100, 2);
+  const sell = book.addOrder("sell", 100, 3);
+  assert.deepEqual(book.getTrades().map(({ buyOrderId }) => buyOrderId),
+    [first.id, second.id]);
+  assert.equal(book.getOrder(first.id), null);
+  assert.equal(book.getOrder(second.id).remaining, 1);
+  assert.deepEqual(book.bestBid().orders.map(({ id }) => id), [second.id]);
+  assertConsistent(book);
+});
+
+test("cancelar ordem parcialmente executada retira apenas o saldo", () => {
+  const book = new OrderBook();
+  const buy = book.addOrder("buy", 100, 6);
+  book.addOrder("sell", 100, 2);
+  assert.equal(book.getOrder(buy.id).remaining, 4);
+  assert.equal(book.cancelOrder(buy.id), true);
+  assert.equal(book.getOrder(buy.id), null);
+  assert.equal(book.bestBid(), null);
+  assert.equal(book.getTrades().length, 1);
+  assertConsistent(book);
+});
+
+test("histórico devolve cópias e preserva a sequência de execuções", () => {
+  const book = new OrderBook();
+  book.addOrder("sell", 100, 1);
+  book.addOrder("buy", 100, 1);
+  book.addOrder("buy", 110, 2);
+  book.addOrder("sell", 110, 1);
+  const history = book.getTrades();
+  assert.deepEqual(history.map(({ id }) => id), [1, 2]);
+  assert.deepEqual(history.map(({ quantity }) => quantity), [1, 1]);
+  history[0].price = 999;
+  history.pop();
+  assert.equal(book.getTrades()[0].price, 100);
+  assert.equal(book.getTrades().length, 2);
+  assertConsistent(book);
+});
+
+test("entrada inválida não altera saldos, histórico ou contadores", () => {
+  const book = new OrderBook();
+  const buy = book.addOrder("buy", 100, 2);
+  const before = book.listBids();
+  for (const args of [["sell", 100, 0], ["sell", 100.5, 1], ["other", 100, 1]]) {
+    assert.throws(() => book.addOrder(...args));
+    assert.deepEqual(book.listBids(), before);
+    assert.deepEqual(book.getTrades(), []);
+  }
+  const sell = book.addOrder("sell", 100, 1);
+  assert.equal(sell.id, buy.id + 1);
+  assert.equal(sell.sequence, buy.sequence + 1);
+  assert.equal(book.getTrades()[0].id, 1);
+  assertConsistent(book);
+});
+
+test("ao fim de cada cadastro não restam melhores ofertas cruzadas", () => {
+  const book = new OrderBook();
+  const orders = [
+    ["sell", 120, 3], ["buy", 100, 4], ["buy", 130, 2],
+    ["buy", 125, 5], ["sell", 110, 6], ["sell", 90, 2],
+  ];
+  for (const args of orders) {
+    book.addOrder(...args);
+    const bid = book.bestBid();
+    const ask = book.bestAsk();
+    assert.ok(bid === null || ask === null || bid.price < ask.price);
+    assertConsistent(book);
+  }
 });
