@@ -1,7 +1,6 @@
 # Benchmark da Árvore AVL
 
-Gerado por `npm run bench` em 16/11/2026, 15:43:07, Node.js v26.13.0, AMD Ryzen 5 3450U with Radeon Vega Mobile Gfx.
-Cada valor é a mediana de 3 execuções. Busca e máximo fazem n consultas; inserção e remoção são o tempo total para n chaves.
+Gerado por `npm run bench`
 
 Compara a AVL do projeto com uma árvore binária de busca sem balanceamento e com um array ordenado (busca binária + `splice`).
 Chaves são inteiros distintos de 1 a n. As buscas e remoções usam ordem aleatória.
@@ -10,33 +9,33 @@ Chaves são inteiros distintos de 1 a n. As buscas e remoções usam ordem aleat
 
 | n | Estrutura | Altura | Inserção (ms) | Busca (ns/op) | Máximo (ns/op) | Remoção (ms) |
 |---:|---|---:|---:|---:|---:|---:|
-| 1.000 | AVL | 12 | 0,42 | 121 | 160 | 0,32 |
-| 1.000 | ABB sem balanceamento | 20 | 0,74 | 145 | 48 | 0,16 |
-| 1.000 | Array ordenado |  | 0,35 | 86 | 44 | 0,43 |
-| 10.000 | AVL | 16 | 3,18 | 116 | 30 | 2,82 |
-| 10.000 | ABB sem balanceamento | 30 | 4,70 | 109 | 8 | 1,09 |
-| 10.000 | Array ordenado |  | 14 | 77 | 3 | 13 |
-| 100.000 | AVL | 20 | 58 | 379 | 16 | 63 |
-| 100.000 | ABB sem balanceamento | 40 | 82 | 393 | 20 | 40 |
-| 100.000 | Array ordenado |  | 1.484 | 208 | 39 | 3.015 |
-| 1.000.000 | AVL | 24 | 1.629 | 1.091 | 33 | 1.642 |
-| 1.000.000 | ABB sem balanceamento | 48 | 1.774 | 1.207 | 17 | 1.115 |
+| 1.000 | AVL | 12 | 0,92 | 201 | 29 | 0,45 |
+| 1.000 | ABB sem balanceamento | 20 | 0,74 | 205 | 118 | 0,23 |
+| 1.000 | Array ordenado |  | 0,34 | 115 | 39 | 0,36 |
+| 10.000 | AVL | 16 | 3,70 | 120 | 26 | 3,10 |
+| 10.000 | ABB sem balanceamento | 30 | 6,53 | 115 | 9 | 1,10 |
+| 10.000 | Array ordenado |  | 19 | 103 | 4 | 19 |
+| 100.000 | AVL | 20 | 54 | 369 | 21 | 55 |
+| 100.000 | ABB sem balanceamento | 40 | 80 | 357 | 18 | 34 |
+| 100.000 | Array ordenado |  | 1.402 | 192 | 36 | 2.340 |
+| 1.000.000 | AVL | 24 | 1.364 | 893 | 27 | 1.339 |
+| 1.000.000 | ABB sem balanceamento | 48 | 1.633 | 1.164 | 17 | 1.060 |
 | 1.000.000 | Array ordenado |  | não medido |  |  |  |
 
 ### Chaves em ordem crescente (preços chegando em sequência)
 
 | n | Estrutura | Altura | Inserção (ms) | Busca (ns/op) | Máximo (ns/op) | Remoção (ms) |
 |---:|---|---:|---:|---:|---:|---:|
-| 1.000 | AVL | 10 | 0,12 | 78 | 18 | 0,15 |
-| 1.000 | ABB sem balanceamento | 1.000 | 11 | 843 | 1.567 | 0,51 |
-| 1.000 | Array ordenado |  | 0,12 | 74 | 9 | 0,24 |
-| 10.000 | AVL | 14 | 1,56 | 128 | 23 | 2,32 |
-| 10.000 | ABB sem balanceamento | 10.000 | 1.447 | 12.790 | 25.006 | 76 |
-| 10.000 | Array ordenado |  | 2,53 | 146 | 9 | 25 |
-| 100.000 | AVL | 17 | 42 | 720 | 30 | 112 |
+| 1.000 | AVL | 10 | 0,15 | 93 | 21 | 0,19 |
+| 1.000 | ABB sem balanceamento | 1.000 | 13 | 1.085 | 1.754 | 0,61 |
+| 1.000 | Array ordenado |  | 0,11 | 71 | 10 | 0,24 |
+| 10.000 | AVL | 14 | 2,97 | 235 | 53 | 4,64 |
+| 10.000 | ABB sem balanceamento | 10.000 | 1.113 | 9.111 | 17.656 | 61 |
+| 10.000 | Array ordenado |  | 1,11 | 74 | 3 | 13 |
+| 100.000 | AVL | 17 | 19 | 395 | 31 | 73 |
 | 100.000 | ABB sem balanceamento |  | não medido |  |  |  |
-| 100.000 | Array ordenado |  | 16 | 149 | 3 | 2.545 |
-| 1.000.000 | AVL | 20 | 345 | 1.231 | 41 | 1.508 |
+| 100.000 | Array ordenado |  | 15 | 121 | 3 | 2.205 |
+| 1.000.000 | AVL | 20 | 349 | 940 | 30 | 1.473 |
 | 1.000.000 | ABB sem balanceamento |  | não medido |  |  |  |
 | 1.000.000 | Array ordenado |  | não medido |  |  |  |
 

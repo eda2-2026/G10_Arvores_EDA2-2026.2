@@ -7,12 +7,6 @@ class QueueNode {
   }
 }
 
-/**
- * Fila FIFO de ordens, implementada como lista duplamente encadeada.
- *
- * Entrar no fim, sair do início e remover um nó qualquer (cancelamento)
- * custam O(1), desde que quem remove guarde o nó devolvido por `enqueue`.
- */
 export class OrderQueue {
   #head = null;
   #tail = null;

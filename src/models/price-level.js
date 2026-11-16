@@ -1,12 +1,6 @@
 import { assertPositiveInteger, assertSide, Order } from "./order.js";
 import { OrderQueue } from "../structures/order-queue.js";
 
-/**
- * Nível de preço: todas as ordens de um mesmo lado com o mesmo preço.
- *
- * É o valor guardado em cada nó da AVL (a chave do nó é o preço). As ordens
- * ficam em uma fila FIFO, então a mais antiga é sempre a próxima a negociar.
- */
 export class PriceLevel {
   #queue = new OrderQueue();
 

@@ -157,7 +157,6 @@ async function handleStatic(request, response, path) {
   response.end(content);
 }
 
-/** Cria o servidor HTTP do simulador. Cada servidor tem o seu próprio livro. */
 export function createAppServer(book = new OrderBook()) {
   return createServer(async (request, response) => {
     const path = new URL(request.url, "http://localhost").pathname;

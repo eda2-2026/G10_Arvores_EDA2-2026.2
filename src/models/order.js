@@ -22,14 +22,6 @@ export function assertPositiveInteger(value, field) {
 }
 
 export class Order {
-  /**
-   * @param {object} data
-   * @param {number} data.id Identificador único da ordem.
-   * @param {"buy" | "sell"} data.side Lado da ordem.
-   * @param {number} data.price Preço limite, em centavos.
-   * @param {number} data.quantity Quantidade total pedida.
-   * @param {number} data.sequence Ordem de chegada no livro (menor = mais antiga).
-   */
   constructor({ id, side, price, quantity, sequence }) {
     assertSide(side);
     assertPositiveInteger(id, "Id");
