@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Livro de ofertas</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <h1>Livro de ofertas</h1>
+      <p>Simulador de um ativo fictício. Compras e vendas ficam em duas árvores AVL, uma por lado.</p>
+    </header>
+
+    <main class="desk">
+      <aside class="ticket" aria-label="Boleta">
+        <form id="order-form" data-side="buy">
+          <h2>Boleta</h2>
+
+          <fieldset class="side-switch">
+            <legend class="visually-hidden">Lado da ordem</legend>
+            <label class="side-option buy">
+              <input type="radio" name="side" value="buy" checked />
+              <span>Comprar</span>
+            </label>
+            <label class="side-option sell">
+              <input type="radio" name="side" value="sell" />
+              <span>Vender</span>
+            </label>
+          </fieldset>
+
+          <label class="field">
+            <span>Preço (R$)</span>
+            <input name="price" inputmode="decimal" placeholder="10,50" required autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span>Quantidade</span>
+            <input name="quantity" type="number" min="1" step="1" placeholder="100" required />
+          </label>
+
+          <button type="submit" id="order-submit" class="submit">Comprar</button>
+        </form>
+
+        <form id="cancel-form" class="cancel">
+          <h2>Cancelar ordem</h2>
+          <label class="field">
+            <span>Número da ordem</span>
+            <input name="id" type="number" min="1" step="1" placeholder="3" required />
+          </label>
+          <button type="submit" class="ghost">Cancelar ordem</button>
+          <p class="note">Também dá para cancelar pelo × ao lado de cada ordem na escada.</p>
+        </form>
+
+        <p id="message" role="status" aria-live="polite"></p>
+      </aside>
+
+      <section class="ladder" aria-labelledby="ladder-title">
+        <h2 id="ladder-title" class="visually-hidden">Escada de preços</h2>
+
+        <div class="side-head sell">
+          <h3>Vendas</h3>
+          <p id="asks-avl" class="avl"></p>
+        </div>
+        <ol id="asks" class="levels sell" aria-label="Ofertas de venda, maior preço no topo"></ol>
+
+        <div id="spread" class="spread"></div>
+
+        <ol id="bids" class="levels buy" aria-label="Ofertas de compra, maior preço no topo"></ol>
+        <div class="side-head buy">
+          <h3>Compras</h3>
+          <p id="bids-avl" class="avl"></p>
+        </div>
+      </section>
+
+      <section class="tape" aria-labelledby="tape-title">
+        <h2 id="tape-title">Negociações</h2>
+        <ol id="trades" class="trades"></ol>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
