@@ -2,14 +2,18 @@
 
 Simulador do livro de ofertas (*order book*) de uma bolsa de valores para um ativo fictício. As ofertas de compra e de venda são organizadas em duas instâncias de uma mesma Árvore AVL, e as negociações acontecem automaticamente quando os preços se cruzam.
 
-Projeto do grupo 10 da disciplina Estruturas de Dados e Algoritmos 2 (UnB, 2026.2). É um simulador educacional: não há dinheiro real nem integração com corretoras.
+Projeto do grupo 10 da disciplina Estruturas de Dados e Algoritmos 2 (UnB, 2026.2).
 
 ## Autores
 
 | Nome | Matrícula |
 | --- | --- |
-| Enzo Menali | 241011054|
-| Paulo Vitor Gomes | 241025971
+| Enzo Menali | 241011054 |
+| Paulo Vitor Gomes | 241025971 |
+
+## Apresentação
+
+[Vídeo de apresentação (5 minutos)](https://drive.google.com/file/d/1ZmFpThngMstD9Pf69yA_r7z1XS4ujZq6/view?usp=sharing)
 
 ## Funcionalidades
 
@@ -134,14 +138,3 @@ O benchmark compara a AVL com uma árvore binária de busca sem balanceamento e 
 
 - Um único ativo, com o livro apenas em memória: reiniciar o servidor apaga ordens e histórico.
 - Só ordens limitadas; não há ordens a mercado, validade ou identificação de participantes.
-
-## Apresentação
-
-Vídeo de apresentação (5 minutos): *link a adicionar*.
-
-## Autores
-
-| Nome |
-| --- |
-| Paulo Vitor Gomes |
-| Enzo Menali |
