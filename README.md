@@ -4,6 +4,13 @@ Simulador do livro de ofertas (*order book*) de uma bolsa de valores para um ati
 
 Projeto do grupo 10 da disciplina Estruturas de Dados e Algoritmos 2 (UnB, 2026.2). É um simulador educacional: não há dinheiro real nem integração com corretoras.
 
+## Autores
+
+| Nome | Matrícula |
+| --- | --- |
+| Enzo Menali | 241011054|
+| Paulo Vitor Gomes | 241025971
+
 ## Funcionalidades
 
 - Cadastro de ordens limitadas de compra e de venda, com preço em reais e quantidade inteira.
