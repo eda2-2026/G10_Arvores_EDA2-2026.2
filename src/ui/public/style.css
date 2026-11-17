@@ -98,18 +98,17 @@ ul {
   padding: 0 24px 48px;
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto auto;
   grid-template-areas:
     "ticket ladder"
-    "ticket tape";
+    "ticket tape"
+    "trees trees";
   gap: 24px 32px;
   align-items: start;
 }
 
 .ticket {
   grid-area: ticket;
-  position: sticky;
-  top: 16px;
 }
 
 .ladder {
@@ -118,6 +117,11 @@ ul {
 
 .tape {
   grid-area: tape;
+}
+
+.tree-explorer {
+  grid-area: trees;
+  min-width: 0;
 }
 
 #order-form {
@@ -395,8 +399,16 @@ button {
 
 .spread {
   padding: 10px 20px;
-  background: var(--marca);
-  color: var(--marca-tinta);
+  border-top: 1px solid var(--linha);
+  border-bottom: 1px solid var(--linha);
+  background: var(--papel);
+  color: var(--tinta-suave);
+  font-size: 0.9rem;
+}
+
+.spread.has-spread {
+  background: color-mix(in srgb, var(--marca) 18%, var(--folha));
+  color: var(--tinta);
   font-weight: 600;
 }
 
@@ -443,6 +455,99 @@ button {
   max-width: 60ch;
 }
 
+.tree-explorer > summary {
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.tree-intro,
+.tree-summary,
+.tree-empty {
+  color: var(--tinta-suave);
+  font-size: 0.9rem;
+}
+
+.tree-intro {
+  max-width: 75ch;
+  margin-bottom: 16px;
+}
+
+.tree-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.tree-panel {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: var(--folha);
+}
+
+.tree-panel h3 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.tree-panel.buy h3 {
+  color: var(--compra);
+}
+
+.tree-panel.sell h3 {
+  color: var(--venda);
+}
+
+.tree-canvas {
+  min-height: 90px;
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.tree-canvas svg {
+  display: block;
+  margin: 0 auto;
+}
+
+.tree-empty {
+  padding-top: 16px;
+}
+
+.tree-link {
+  stroke: var(--linha);
+  stroke-width: 2;
+}
+
+.tree-node rect {
+  fill: var(--folha);
+  stroke: var(--linha);
+}
+
+.tree-panel.buy .tree-node.root rect {
+  stroke: var(--compra);
+  stroke-width: 2;
+}
+
+.tree-panel.sell .tree-node.root rect {
+  stroke: var(--venda);
+  stroke-width: 2;
+}
+
+.tree-price {
+  fill: var(--tinta);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tree-meta,
+.tree-more {
+  fill: var(--tinta-suave);
+  font-size: 11px;
+}
+
 .trade.fresh {
   animation: marca-texto 2.4s ease-out;
 }
@@ -475,11 +580,8 @@ button {
     grid-template-areas:
       "ticket"
       "ladder"
-      "tape";
-  }
-
-  .ticket {
-    position: static;
+      "tape"
+      "trees";
   }
 
   .level {
@@ -499,5 +601,11 @@ button {
 
   .trade-parties {
     grid-column: 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .tree-pair {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

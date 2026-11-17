@@ -9,6 +9,10 @@ const elements = {
   bidsAvl: document.querySelector("#bids-avl"),
   spread: document.querySelector("#spread"),
   trades: document.querySelector("#trades"),
+  bidTree: document.querySelector("#bid-tree"),
+  askTree: document.querySelector("#ask-tree"),
+  bidTreeSummary: document.querySelector("#bid-tree-summary"),
+  askTreeSummary: document.querySelector("#ask-tree-summary"),
 };
 
 const SIDE_TEXT = { buy: "Compra", sell: "Venda" };
@@ -117,6 +121,7 @@ function renderSide(list, levels, maxQuantity, emptyText) {
 }
 
 function renderSpread(book) {
+  elements.spread.classList.toggle("has-spread", book.spreadText !== null);
   if (book.spreadText !== null) {
     elements.spread.textContent = `Spread de R$ ${book.spreadText} entre a melhor venda e a melhor compra`;
     return;
@@ -126,8 +131,80 @@ function renderSpread(book) {
     elements.spread.textContent = "Livro vazio. Envie a primeira ordem pela boleta.";
   } else {
     const missing = book.bestAsk === null ? "venda" : "compra";
-    elements.spread.textContent = `Sem spread: ainda não há oferta de ${missing}.`;
+    elements.spread.textContent = `Spread indisponível: ainda não há oferta de ${missing}.`;
   }
+}
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+function svgElement(tag, attributes = {}, content) {
+  const node = document.createElementNS(SVG_NS, tag);
+  for (const [name, value] of Object.entries(attributes)) {
+    node.setAttribute(name, String(value));
+  }
+  if (content !== undefined) node.textContent = content;
+  return node;
+}
+
+function renderTree(container, summary, root, stats, side) {
+  if (root === null) {
+    summary.textContent = "Nenhum nível de preço nesta árvore.";
+    container.replaceChildren(element("p", "tree-empty", "A primeira ordem deste lado cria a raiz."));
+    return;
+  }
+
+  let nextColumn = 0;
+  let deepest = 0;
+  const nodes = [];
+  const edges = [];
+
+  function position(node, depth) {
+    if (node === null) return null;
+    const left = position(node.left, depth + 1);
+    const x = 50 + nextColumn * 100;
+    nextColumn += 1;
+    const right = position(node.right, depth + 1);
+    const y = 42 + depth * 92;
+    deepest = Math.max(deepest, depth);
+    nodes.push({ node, x, y, depth });
+    if (left !== null) edges.push({ x1: x, y1: y + 26, x2: left, y2: y + 66 });
+    if (right !== null) edges.push({ x1: x, y1: y + 26, x2: right, y2: y + 66 });
+    return x;
+  }
+
+  position(root, 0);
+  const hasHiddenNodes = nodes.some(({ node }) => node.truncated);
+  summary.textContent = `Raiz: R$ ${root.priceText} · ${plural(stats.nodes, "nó", "nós")} · altura ${stats.height}`
+    + (hasHiddenNodes ? " · mostrando os primeiros 5 níveis" : "");
+  const width = Math.max(100, nextColumn * 100);
+  const height = 104 + deepest * 92;
+  const svg = svgElement("svg", {
+    viewBox: `0 0 ${width} ${height}`,
+    width,
+    height,
+    role: "img",
+    "aria-label": `Árvore AVL de ${side}: ${stats.nodes} níveis, altura ${stats.height}, raiz R$ ${root.priceText}`
+      + (hasHiddenNodes ? "; os níveis mais profundos estão ocultos" : ""),
+  });
+
+  for (const edge of edges) {
+    svg.append(svgElement("line", { ...edge, class: "tree-link" }));
+  }
+  for (const { node, x, y, depth } of nodes) {
+    const group = svgElement("g", { class: depth === 0 ? "tree-node root" : "tree-node" });
+    group.append(
+      svgElement("rect", { x: x - 46, y: y - 27, width: 92, height: 56, rx: 9 }),
+      svgElement("text", { x, y: y - 3, class: "tree-price", "text-anchor": "middle" }, node.priceText),
+      svgElement("text", { x, y: y + 17, class: "tree-meta", "text-anchor": "middle" },
+        `h ${node.height} · FB ${node.balance}`),
+    );
+    if (node.truncated) {
+      group.append(svgElement("text", { x, y: y + 46, class: "tree-more", "text-anchor": "middle" }, "…"));
+    }
+    svg.append(group);
+  }
+
+  container.replaceChildren(svg);
 }
 
 function renderBook(book) {
@@ -139,6 +216,8 @@ function renderBook(book) {
 
   elements.asksAvl.textContent = describeTree(book.avl.asks);
   elements.bidsAvl.textContent = describeTree(book.avl.bids);
+  renderTree(elements.bidTree, elements.bidTreeSummary, book.trees.bids, book.avl.bids, "compras");
+  renderTree(elements.askTree, elements.askTreeSummary, book.trees.asks, book.avl.asks, "vendas");
 }
 
 function renderTrades(trades) {
@@ -203,7 +282,7 @@ function describeOrder({ order, trades }) {
   let text = `${SIDE_TEXT[order.side]} #${order.id} enviada: ${order.quantity} a R$ ${order.priceText}.`;
 
   if (trades.length > 0) {
-    text += ` ${traded} negociada(s) em ${plural(trades.length, "negociação", "negociações")}.`;
+    text += ` ${plural(traded, "unidade negociada", "unidades negociadas")} em ${plural(trades.length, "negociação", "negociações")}.`;
   }
 
   text += order.remaining === 0

@@ -96,6 +96,21 @@ function treeStats(tree) {
   return { nodes: tree.size, height: tree.root === null ? 0 : tree.root.height };
 }
 
+// O desenho mostra até cinco níveis para continuar legível com livros grandes.
+function treeShape(node, depth = 0) {
+  if (node === null) return null;
+  const truncated = depth === 4 && (node.left !== null || node.right !== null);
+  return {
+    price: node.key,
+    priceText: formatReais(node.key),
+    height: node.height,
+    balance: (node.left?.height ?? 0) - (node.right?.height ?? 0),
+    truncated,
+    left: depth < 4 ? treeShape(node.left, depth + 1) : null,
+    right: depth < 4 ? treeShape(node.right, depth + 1) : null,
+  };
+}
+
 function bookSnapshot(book) {
   const bestBid = book.bestBid();
   const bestAsk = book.bestAsk();
@@ -109,6 +124,7 @@ function bookSnapshot(book) {
     bids: book.listBids().map(levelToJson),
     asks: book.listAsks().map(levelToJson),
     avl: { bids: treeStats(book.bids), asks: treeStats(book.asks) },
+    trees: { bids: treeShape(book.bids.root), asks: treeShape(book.asks.root) },
   };
 }
 

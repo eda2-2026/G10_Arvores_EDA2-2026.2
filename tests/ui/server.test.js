@@ -36,6 +36,8 @@ test("serve a página e os arquivos da interface", async (t) => {
   assert.match(page.headers.get("content-type"), /text\/html/);
   assert.match(page.body, /id="order-form"/);
   assert.match(page.body, /id="cancel-form"/);
+  assert.match(page.body, /id="bid-tree"/);
+  assert.match(page.body, /id="ask-tree"/);
 
   assert.equal((await request("/app.js")).status, 200);
   assert.equal((await request("/style.css")).status, 200);
@@ -62,6 +64,7 @@ test("começa com o livro e o histórico vazios", async (t) => {
     bids: [],
     asks: [],
     avl: { bids: { nodes: 0, height: 0 }, asks: { nodes: 0, height: 0 } },
+    trees: { bids: null, asks: null },
   });
 
   assert.deepEqual((await request("/api/trades")).body, []);
@@ -106,6 +109,23 @@ test("informa quantos nós e qual a altura de cada árvore AVL", async (t) => {
 
   const { avl } = (await request("/api/book")).body;
   assert.deepEqual(avl, { bids: { nodes: 4, height: 3 }, asks: { nodes: 1, height: 1 } });
+});
+
+test("expõe a forma das AVLs e seus fatores de balanceamento", async (t) => {
+  const request = await startServer(t);
+  for (const price of ["10,00", "10,10", "10,20"]) {
+    await request("/api/orders", { method: "POST", body: { side: "buy", price, quantity: 1 } });
+  }
+
+  const { trees } = (await request("/api/book")).body;
+  assert.deepEqual(trees.bids, {
+    price: 1010, priceText: "10,10", height: 2, balance: 0, truncated: false,
+    left: { price: 1000, priceText: "10,00", height: 1, balance: 0,
+      truncated: false, left: null, right: null },
+    right: { price: 1020, priceText: "10,20", height: 1, balance: 0,
+      truncated: false, left: null, right: null },
+  });
+  assert.equal(trees.asks, null);
 });
 
 test("devolve as negociações geradas pela ordem e grava o histórico", async (t) => {

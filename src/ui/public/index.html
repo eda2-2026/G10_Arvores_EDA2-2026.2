@@ -75,6 +75,23 @@
         <h2 id="tape-title">Negociações</h2>
         <ol id="trades" class="trades"></ol>
       </section>
+
+      <details class="tree-explorer" open>
+        <summary>Dentro das árvores AVL</summary>
+        <p class="tree-intro">Cada nó representa um preço. As linhas mostram os filhos; h é a altura e FB é o fator de balanceamento.</p>
+        <div class="tree-pair">
+          <section class="tree-panel buy" aria-labelledby="bid-tree-title">
+            <h3 id="bid-tree-title">Compras · maior preço à direita</h3>
+            <p id="bid-tree-summary" class="tree-summary"></p>
+            <div id="bid-tree" class="tree-canvas"></div>
+          </section>
+          <section class="tree-panel sell" aria-labelledby="ask-tree-title">
+            <h3 id="ask-tree-title">Vendas · menor preço à esquerda</h3>
+            <p id="ask-tree-summary" class="tree-summary"></p>
+            <div id="ask-tree" class="tree-canvas"></div>
+          </section>
+        </div>
+      </details>
     </main>
 
     <script type="module" src="/app.js"></script>
